@@ -26,13 +26,11 @@ func mongoMiddleware(client *mongo.Client) gin.HandlerFunc {
 }
 
 func main() {
-    // Load .env file
     err := godotenv.Load()
     if err != nil {
         log.Fatalf("Error loading .env file")
     }
 
-    // Establish MongoDB connection
     mongoURI := os.Getenv("MONGODB_URI")
     if mongoURI == "" {
         log.Fatalf("MongoDB URI is not set")
@@ -44,18 +42,15 @@ func main() {
         log.Fatalf("Could not connect to MongoDB: %v", err)
     }
 
-    // Check the connection
     err = client.Ping(context.TODO(), nil)
     if err != nil {
         log.Fatalf("Could not ping MongoDB: %v", err)
     }
 
-    // Ensure client disconnects when the application closes
     defer client.Disconnect(context.TODO())
 
     r := gin.Default()
 
-    // Apply MongoDB middleware
     r.Use(mongoMiddleware(client))
 
     r.POST("/get-data", func(c *gin.Context) {
@@ -66,7 +61,6 @@ func main() {
             return
         }
 
-        // Retrieve the MongoDB client from context
         mongoClient, exists := c.Get("mongoClient")
         if !exists {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "MongoDB client not found"})
